@@ -8,11 +8,12 @@ namespace TodoApi.Models
 {
     public class TodoContext : DbContext
     {
-        public TodoContext(DbContextOptions<TodoContext> options)
-            : base(options)
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            optionsBuilder.UseSqlite("Filename=MyDatabase.db");
         }
 
-        public DbSet<TodoItem> TodoItems { get; set; }
+         public DbSet<TodoItem> TodoItems { get; set; }
     }
 }

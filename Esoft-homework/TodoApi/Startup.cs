@@ -17,6 +17,10 @@ namespace TodoApi
     {
         public Startup(IConfiguration configuration)
         {
+            using (var client = new TodoContext())
+            {
+                client.Database.EnsureCreated();
+            }
             Configuration = configuration;
         }
 
@@ -26,7 +30,7 @@ namespace TodoApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddDbContext<TodoContext>(opt => opt.UseInMemoryDatabase("TodoList"));
+            services.AddEntityFrameworkSqlite().AddDbContext<TodoContext>();
             services.AddControllers();
         }
 
