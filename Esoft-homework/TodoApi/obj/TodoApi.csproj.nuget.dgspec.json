@@ -40,7 +40,7 @@
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
           "dependencies": {
-            "Microsoft.Data.Sqlite.Core": {
+            "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[5.0.10, )"
             },
@@ -50,11 +50,7 @@
               "target": "Package",
               "version": "[5.0.10, )"
             },
-            "Microsoft.EntityFrameworkCore.InMemory": {
-              "target": "Package",
-              "version": "[5.0.10, )"
-            },
-            "Microsoft.EntityFrameworkCore.SqlServer": {
+            "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[5.0.10, )"
             },
