@@ -5,13 +5,6 @@ using System.Threading.Tasks;
 
 namespace TodoApi.Models
 {
-
-    public enum Connection
-    {
-        Parent,
-        Child
-
-    }
     public partial class Relation
     {
         public Relation()
@@ -20,7 +13,7 @@ namespace TodoApi.Models
 
         public int Id { get; set; }
 
-        public Connection Connection { get; set; }
+        public string Connection { get; set; }
 
         public virtual ICollection<Person> Persons { get; set; }
 
