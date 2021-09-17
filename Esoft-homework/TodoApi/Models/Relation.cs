@@ -15,7 +15,7 @@ namespace TodoApi.Models
 
         public string Connection { get; set; }
 
-        public virtual ICollection<Person> Persons { get; set; }
-
+        public int FromPersonId { get; set; }
+        public int ToPersonId { get; set; }
     }
 }

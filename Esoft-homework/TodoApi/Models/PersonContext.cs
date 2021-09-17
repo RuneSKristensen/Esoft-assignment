@@ -15,5 +15,6 @@ namespace TodoApi.Models
         }
 
          public DbSet<Person> Family { get; set; }
+         public DbSet<Relation> Relations { get; set; }
     }
 }

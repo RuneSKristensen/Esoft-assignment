@@ -9,12 +9,10 @@ namespace TodoApi.Models
     {
         public Person()
         {
-            Relations = new List<Relation>();
         }
 
         public long Id { get; set; }
         public string Name { get; set; }
         public int BirthYear { get; set; }
-        public ICollection<Relation> Relations { get; set; }
     }
 }
