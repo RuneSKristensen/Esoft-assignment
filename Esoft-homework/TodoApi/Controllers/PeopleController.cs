@@ -41,34 +41,42 @@ namespace TodoApi.Controllers
             return person;
         }
 
-        // POST: api/People/5/parent or api/People/5/child
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPost("{id}/{connection}")]
-        public async Task<IActionResult> PostPersonAndRelation([FromRoute]int id, [FromRoute]string connection, [FromBody]Person relative)
+        // GET: api/People/relations
+        [HttpGet("relations")]
+        public async Task<ActionResult<IEnumerable<Relation>>> GetRelations()
         {
-            //if (!PersonExists(id))
-            //{
-            //    return NotFound();
-            //}
-
-            _context.Family.Add(relative);
-            _context.Relations.Add(RelatePeople(id, relative.Id, connection));
-
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return await _context.Relations.ToListAsync();
         }
 
         // POST: api/People
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Person>> PostPerson(Person person)
+        public async Task<IActionResult> PostPerson(Person person)
         {
             _context.Family.Add(person);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction(nameof(PostPerson), person.Id);
+        }
+
+        // POST: api/People/5/parent or api/People/5/child
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost("{id}/{connection}")]
+        public async Task<IActionResult> PostPersonAndRelation([FromRoute] int id, [FromRoute] string connection, [FromBody] Person relative)
+        {
+            if (!PersonExists(id))
+            {
+                return NotFound();
+            }
+
+            _context.Family.Add(relative);
+            await _context.SaveChangesAsync();
+            _context.Relations.Add(RelatePeople(id, relative.Id, connection));
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(PostPerson), relative.Id);
         }
 
         // DELETE: api/People/5
@@ -85,6 +93,22 @@ namespace TodoApi.Controllers
             await _context.SaveChangesAsync();
 
             return person;
+        }
+
+        // DELETE: api/People/relations/5
+        [HttpDelete("relations/{id}")]
+        public async Task<ActionResult<Relation>> DeleteRelation(int id)
+        {
+            var relation = await _context.Relations.FindAsync(id);
+            if (relation == null)
+            {
+                return NotFound();
+            }
+           
+            _context.Relations.Remove(relation);
+            await _context.SaveChangesAsync();
+
+            return relation;
         }
 
         private bool PersonExists(int id)
