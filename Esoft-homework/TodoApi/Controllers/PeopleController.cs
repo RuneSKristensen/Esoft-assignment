@@ -11,48 +11,48 @@ namespace TodoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TodoItemsController : ControllerBase
+    public class PeopleController : ControllerBase
     {
-        private readonly TodoContext _context;
+        private readonly PersonContext _context;
 
-        public TodoItemsController(TodoContext context)
+        public PeopleController(PersonContext context)
         {
             _context = context;
         }
 
-        // GET: api/TodoItems
+        // GET: api/People
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
+        public async Task<ActionResult<IEnumerable<Person>>> GetPersons()
         {
-            return await _context.TodoItems.ToListAsync();
+            return await _context.Family.ToListAsync();
         }
 
-        // GET: api/TodoItems/5
+        // GET: api/People/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
+        public async Task<ActionResult<Person>> GetPerson(long id)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
+            var person = await _context.Family.FindAsync(id);
 
-            if (todoItem == null)
+            if (person == null)
             {
                 return NotFound();
             }
 
-            return todoItem;
+            return person;
         }
 
-        // PUT: api/TodoItems/5
+        // PUT: api/People/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
+        public async Task<IActionResult> PutPerson(long id, Person person)
         {
-            if (id != todoItem.Id)
+            if (id != person.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(todoItem).State = EntityState.Modified;
+            _context.Entry(person).State = EntityState.Modified;
 
             try
             {
@@ -60,7 +60,7 @@ namespace TodoApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TodoItemExists(id))
+                if (!PersonExists(id))
                 {
                     return NotFound();
                 }
@@ -73,37 +73,37 @@ namespace TodoApi.Controllers
             return NoContent();
         }
 
-        // POST: api/TodoItems
+        // POST: api/People
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
+        public async Task<ActionResult<Person>> PostPerson(Person person)
         {
-            _context.TodoItems.Add(todoItem);
+            _context.Family.Add(person);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTodoItem), new { id = todoItem.Id }, todoItem);
+            return CreatedAtAction(nameof(GetPerson), new { id = person.Id }, person);
         }
 
-        // DELETE: api/TodoItems/5
+        // DELETE: api/People/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<TodoItem>> DeleteTodoItem(long id)
+        public async Task<ActionResult<Person>> DeletePerson(long id)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
-            if (todoItem == null)
+            var person = await _context.Family.FindAsync(id);
+            if (person == null)
             {
                 return NotFound();
             }
 
-            _context.TodoItems.Remove(todoItem);
+            _context.Family.Remove(person);
             await _context.SaveChangesAsync();
 
-            return todoItem;
+            return person;
         }
 
-        private bool TodoItemExists(long id)
+        private bool PersonExists(long id)
         {
-            return _context.TodoItems.Any(e => e.Id == id);
+            return _context.Family.Any(e => e.Id == id);
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TodoApi.Models
 {
-    public class TodoContext : DbContext
+    public class PersonContext : DbContext
     {
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -14,6 +14,6 @@ namespace TodoApi.Models
             optionsBuilder.UseSqlite("Filename=MyDatabase.db");
         }
 
-         public DbSet<TodoItem> TodoItems { get; set; }
+         public DbSet<Person> Family { get; set; }
     }
 }
