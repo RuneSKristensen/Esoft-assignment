@@ -78,21 +78,24 @@ namespace TodoApi.Controllers
                                        where (r.FromPersonId == id)
                                        select r;
             listofrelatives.ToList();
+            Person newPerson = null;
             foreach (Relation relative in listofrelatives)
             {
-                if((relative.Connection == "parent") && (direction >= 0))
+                newPerson = null;
+                if ((relative.Connection == "parent") && (direction >= 0))
                 {
-                    var newPerson = _context.Family.Find(relative.ToPersonId);
+                    newPerson = _context.Family.Find(relative.ToPersonId);
                     if (newPerson != null)
                     {
-                        ASCII.Insert(0, newPerson.Name);
+                        ASCII = ASCII.Insert(0, newPerson.Name);
                         BuildFamilyRecursion(relative.ToPersonId, 1, ref ASCII);
                     }
 
                 }
+                newPerson = null;
                 if ((relative.Connection == "child") && (direction <= 0))
                 {
-                    var newPerson = _context.Family.Find(relative.ToPersonId);
+                    newPerson = _context.Family.Find(relative.ToPersonId);
                     if (newPerson != null)
                     {
                         ASCII += newPerson.Name;
