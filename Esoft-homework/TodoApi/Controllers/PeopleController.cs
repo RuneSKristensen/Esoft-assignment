@@ -67,12 +67,12 @@ namespace TodoApi.Controllers
         public string GetFamilyOf(int id)
         {
             var person = _context.Family.Find(id);
-            string ASCII = person.Name;
-            BuildFamilyRecursion(id, 0, ref ASCII);
+            string ASCII = person.Name + " ";
+            BuildFamilyRecursion(id, 0, 1, 1, ref ASCII);
             return ASCII;
         }
 
-        private void BuildFamilyRecursion(int id, int direction, ref string ASCII)
+        private void BuildFamilyRecursion(int id, int direction, int height, int depth, ref string ASCII)
         {
             var listofrelatives = from r in _context.Relations
                                        where (r.FromPersonId == id)
@@ -87,8 +87,8 @@ namespace TodoApi.Controllers
                     newPerson = _context.Family.Find(relative.ToPersonId);
                     if (newPerson != null)
                     {
-                        ASCII = ASCII.Insert(0, newPerson.Name);
-                        BuildFamilyRecursion(relative.ToPersonId, 1, ref ASCII);
+                        ASCII = ASCII.Insert(0, new string('^', height) + newPerson.Name + " ");
+                        BuildFamilyRecursion(relative.ToPersonId, 1, height+1, depth, ref ASCII);
                     }
 
                 }
@@ -98,8 +98,8 @@ namespace TodoApi.Controllers
                     newPerson = _context.Family.Find(relative.ToPersonId);
                     if (newPerson != null)
                     {
-                        ASCII += newPerson.Name;
-                        BuildFamilyRecursion(relative.ToPersonId, -1, ref ASCII);
+                        ASCII += new string('v', depth) + newPerson.Name + " ";
+                        BuildFamilyRecursion(relative.ToPersonId, -1, height, depth+1, ref ASCII);
                     }
                 }
             }
