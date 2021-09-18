@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,14 +20,14 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
-        // GET: api/People
+        // GET: /People
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Person>>> GetPersons()
         {
             return await _context.Family.ToListAsync();
         }
 
-        // GET: api/People/5
+        // GET: /People/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Person>> GetPerson(int id)
         {
@@ -41,14 +41,69 @@ namespace TodoApi.Controllers
             return person;
         }
 
-        // GET: api/People/relations
+        // GET: /People/relations
         [HttpGet("relations")]
         public async Task<ActionResult<IEnumerable<Relation>>> GetRelations()
         {
             return await _context.Relations.ToListAsync();
         }
 
-        // POST: api/People
+        // GET: /People/relations/5
+        [HttpGet("relations/{id}")]
+        public async Task<ActionResult<Relation>> GetRelation(int id)
+        {
+            var relation = await _context.Relations.FindAsync(id);
+
+            if (relation == null)
+            {
+                return NotFound();
+            }
+
+            return relation;
+        }
+
+        // GET: /People/FamilyOf/5
+        [HttpGet("familyof/{id}")]
+        public string GetFamilyOf(int id)
+        {
+            var person = _context.Family.Find(id);
+            string ASCII = person.Name;
+            BuildFamilyRecursion(id, 0, ref ASCII);
+            return ASCII;
+        }
+
+        private void BuildFamilyRecursion(int id, int direction, ref string ASCII)
+        {
+            var listofrelatives = from r in _context.Relations
+                                       where (r.FromPersonId == id)
+                                       select r;
+            listofrelatives.ToList();
+            foreach (Relation relative in listofrelatives)
+            {
+                if((relative.Connection == "parent") && (direction >= 0))
+                {
+                    var newPerson = _context.Family.Find(relative.ToPersonId);
+                    if (newPerson != null)
+                    {
+                        ASCII.Insert(0, newPerson.Name);
+                        BuildFamilyRecursion(relative.ToPersonId, 1, ref ASCII);
+                    }
+
+                }
+                if ((relative.Connection == "child") && (direction <= 0))
+                {
+                    var newPerson = _context.Family.Find(relative.ToPersonId);
+                    if (newPerson != null)
+                    {
+                        ASCII += newPerson.Name;
+                        BuildFamilyRecursion(relative.ToPersonId, -1, ref ASCII);
+                    }
+                }
+            }
+            return;
+        }
+
+        // POST: /People
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
@@ -60,25 +115,18 @@ namespace TodoApi.Controllers
             return CreatedAtAction(nameof(PostPerson), person.Id);
         }
 
-        // POST: api/People/5/child
+        // POST: /People/child/5
         [HttpPost("child/{id}")]
         public async Task<ActionResult> PostPersonAndChildRelation([FromRoute] int id, [FromBody] Person relative)
         {
             return await PostPersonAndGenericRelation(id, relative, "child");
         }
 
-        // POST: api/People/5/parent or api/People/5/child
+        // POST: api/People/parent/5
         [HttpPost("parent/{id}")]
         public async Task<ActionResult> PostPersonAndParentRelation([FromRoute] int id, [FromBody] Person relative)
         {
             return await PostPersonAndGenericRelation(id, relative, "parent");
-        }
-
-        // POST: api/People/5/parent or api/People/5/child
-        [HttpPost("grandparent/{id}")]
-        public async Task<ActionResult> PostPersonAndGrandparentRelation([FromRoute] int id, [FromBody] Person relative)
-        {
-            return await PostPersonAndGenericRelation(id, relative, "grandparent");
         }
 
         private async Task<ActionResult> PostPersonAndGenericRelation(int id, Person relative, string connection)
@@ -121,7 +169,7 @@ namespace TodoApi.Controllers
             {
                 return NotFound();
             }
-           
+
             _context.Relations.Remove(relation);
             await _context.SaveChangesAsync();
 
