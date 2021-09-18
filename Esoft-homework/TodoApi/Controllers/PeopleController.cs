@@ -63,8 +63,8 @@ namespace TodoApi.Controllers
         // POST: api/People/5/parent or api/People/5/child
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPost("{id}/{connection}")]
-        public async Task<IActionResult> PostPersonAndRelation([FromRoute] int id, [FromRoute] string connection, [FromBody] Person relative)
+        [HttpPost("parent/{id}")]
+        public async Task<ActionResult> PostPersonAndRelation([FromRoute] int id, [FromBody] Person relative)
         {
             if (!PersonExists(id))
             {
@@ -73,7 +73,7 @@ namespace TodoApi.Controllers
 
             _context.Family.Add(relative);
             await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(id, relative.Id, connection));
+            _context.Relations.Add(RelatePeople(id, relative.Id, "parent"));
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(PostPerson), relative.Id);
