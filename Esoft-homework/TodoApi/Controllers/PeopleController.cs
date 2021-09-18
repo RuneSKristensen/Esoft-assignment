@@ -60,11 +60,28 @@ namespace TodoApi.Controllers
             return CreatedAtAction(nameof(PostPerson), person.Id);
         }
 
+        // POST: api/People/5/child
+        [HttpPost("child/{id}")]
+        public async Task<ActionResult> PostPersonAndChildRelation([FromRoute] int id, [FromBody] Person relative)
+        {
+            return await PostPersonAndGenericRelation(id, relative, "child");
+        }
+
         // POST: api/People/5/parent or api/People/5/child
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost("parent/{id}")]
-        public async Task<ActionResult> PostPersonAndRelation([FromRoute] int id, [FromBody] Person relative)
+        public async Task<ActionResult> PostPersonAndParentRelation([FromRoute] int id, [FromBody] Person relative)
+        {
+            return await PostPersonAndGenericRelation(id, relative, "parent");
+        }
+
+        // POST: api/People/5/parent or api/People/5/child
+        [HttpPost("grandparent/{id}")]
+        public async Task<ActionResult> PostPersonAndGrandparentRelation([FromRoute] int id, [FromBody] Person relative)
+        {
+            return await PostPersonAndGenericRelation(id, relative, "grandparent");
+        }
+
+        private async Task<ActionResult> PostPersonAndGenericRelation(int id, Person relative, string connection)
         {
             if (!PersonExists(id))
             {
@@ -73,7 +90,7 @@ namespace TodoApi.Controllers
 
             _context.Family.Add(relative);
             await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(id, relative.Id, "parent"));
+            _context.Relations.Add(RelatePeople(id, relative.Id, connection));
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(PostPerson), relative.Id);
