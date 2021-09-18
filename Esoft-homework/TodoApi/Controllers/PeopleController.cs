@@ -129,6 +129,29 @@ namespace TodoApi.Controllers
             return await PostPersonAndGenericRelation(id, relative, "parent");
         }
 
+        // POST: api/People/parent/5
+        [HttpPost("grandparent/{id}")]
+        public async Task<ActionResult> PostPersonAndGrandarentRelation([FromRoute] int id, [FromBody] Person relative)
+        {
+            if (!PersonExists(id))
+            {
+                return NotFound();
+            }
+
+            Person intermediate = new Person();
+            intermediate.Name = "?";
+            intermediate.BirthYear = 0;
+
+            _context.Family.Add(intermediate);
+            _context.Family.Add(relative);
+            await _context.SaveChangesAsync();
+            _context.Relations.Add(RelatePeople(id, intermediate.Id, "parent"));
+            _context.Relations.Add(RelatePeople(intermediate.Id, relative.Id, "parent"));
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(PostPerson), relative.Id);
+        }
+
         private async Task<ActionResult> PostPersonAndGenericRelation(int id, Person relative, string connection)
         {
             if (!PersonExists(id))
