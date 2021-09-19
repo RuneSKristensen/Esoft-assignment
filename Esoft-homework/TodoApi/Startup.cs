@@ -9,9 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using TodoApi.Models;
+using EsoftApi.Models;
 
-namespace TodoApi
+namespace EsoftApi
 {
     public class Startup
     {
@@ -29,7 +29,6 @@ namespace TodoApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRazorPages();
             services.AddEntityFrameworkSqlite().AddDbContext<Context>();
             services.AddControllers();
         }
@@ -44,7 +43,6 @@ namespace TodoApi
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -57,7 +55,6 @@ namespace TodoApi
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
                 endpoints.MapControllers();
             });
         }
