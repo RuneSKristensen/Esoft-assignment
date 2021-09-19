@@ -74,32 +74,41 @@ namespace EsoftApi.Controllers
 
         private void BuildFamilyRecursion(int id, int direction, int height, int depth, ref string ASCII)
         {
-            var listofrelatives = from r in _context.Relations
-                                       where (r.FromPersonId == id)
-                                       select r;
-            listofrelatives.ToList();
             Person newPerson = null;
-            foreach (Relation relative in listofrelatives)
+            if (direction >= 0)
             {
-                newPerson = null;
-                if ((relative.Connection == "parent") && (direction >= 0))
+                var listofancestors = from r in _context.Relations
+                                      where (r.FromPersonId == id)
+                                      select r;
+                listofancestors.ToList();
+
+                foreach (Relation relative in listofancestors)
                 {
+                    newPerson = null;
                     newPerson = _context.Family.Find(relative.ToPersonId);
                     if (newPerson != null)
                     {
                         ASCII = ASCII.Insert(0, new string('^', height) + newPerson.Name + " ");
-                        BuildFamilyRecursion(relative.ToPersonId, 1, height+1, depth, ref ASCII);
+                        BuildFamilyRecursion(relative.ToPersonId, 1, height + 1, depth, ref ASCII);
                     }
 
                 }
-                newPerson = null;
-                if ((relative.Connection == "child") && (direction <= 0))
+            }
+            if(direction <= 0)
+            {
+                var listofdescendants = from r in _context.Relations
+                                      where (r.ToPersonId == id)
+                                      select r;
+                listofdescendants.ToList();
+
+                foreach (Relation relative in listofdescendants)
                 {
-                    newPerson = _context.Family.Find(relative.ToPersonId);
+                    newPerson = null;
+                    newPerson = _context.Family.Find(relative.FromPersonId);
                     if (newPerson != null)
                     {
                         ASCII += new string('v', depth) + newPerson.Name + " ";
-                        BuildFamilyRecursion(relative.ToPersonId, -1, height, depth+1, ref ASCII);
+                        BuildFamilyRecursion(relative.FromPersonId, -1, height, depth + 1, ref ASCII);
                     }
                 }
             }
@@ -122,14 +131,34 @@ namespace EsoftApi.Controllers
         [HttpPost("child/{id}")]
         public async Task<ActionResult> PostPersonAndChildRelation([FromRoute] int id, [FromBody] Person relative)
         {
-            return await PostPersonAndGenericRelation(id, relative, "child");
+            if (!PersonExists(id))
+            {
+                return NotFound();
+            }
+
+            _context.Family.Add(relative);
+            await _context.SaveChangesAsync();
+            _context.Relations.Add(RelatePeople(relative.Id, id));
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(PostPersonAndChildRelation), relative.Id);
         }
 
         // POST: api/People/parent/5
         [HttpPost("parent/{id}")]
         public async Task<ActionResult> PostPersonAndParentRelation([FromRoute] int id, [FromBody] Person relative)
         {
-            return await PostPersonAndGenericRelation(id, relative, "parent");
+            if (!PersonExists(id))
+            {
+                return NotFound();
+            }
+
+            _context.Family.Add(relative);
+            await _context.SaveChangesAsync();
+            _context.Relations.Add(RelatePeople(id, relative.Id));
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(PostPersonAndParentRelation), relative.Id);
         }
 
         // POST: api/People/parent/5
@@ -148,23 +177,8 @@ namespace EsoftApi.Controllers
             _context.Family.Add(intermediate);
             _context.Family.Add(relative);
             await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(id, intermediate.Id, "parent"));
-            _context.Relations.Add(RelatePeople(intermediate.Id, relative.Id, "parent"));
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(PostPerson), relative.Id);
-        }
-
-        private async Task<ActionResult> PostPersonAndGenericRelation(int id, Person relative, string connection)
-        {
-            if (!PersonExists(id))
-            {
-                return NotFound();
-            }
-
-            _context.Family.Add(relative);
-            await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(id, relative.Id, connection));
+            _context.Relations.Add(RelatePeople(id, intermediate.Id));
+            _context.Relations.Add(RelatePeople(intermediate.Id, relative.Id));
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(PostPerson), relative.Id);
@@ -207,13 +221,11 @@ namespace EsoftApi.Controllers
             return _context.Family.Any(e => e.Id == id);
         }
 
-        private Relation RelatePeople(int id1, int id2, string connection)
+        private Relation RelatePeople(int id1, int id2)
         {
             Relation R = new Relation();
             R.FromPersonId = id1;
             R.ToPersonId = id2;
-            R.Connection = connection;
-
             return R;
         }
     }
