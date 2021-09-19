@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TodoApi.Models
 {
-    public class PersonContext : DbContext
+    public class Context : DbContext
     {
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

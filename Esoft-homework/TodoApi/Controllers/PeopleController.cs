@@ -13,9 +13,9 @@ namespace TodoApi.Controllers
     [ApiController]
     public class PeopleController : ControllerBase
     {
-        private readonly PersonContext _context;
+        private readonly Context _context;
 
-        public PeopleController(PersonContext context)
+        public PeopleController(Context context)
         {
             _context = context;
         }
