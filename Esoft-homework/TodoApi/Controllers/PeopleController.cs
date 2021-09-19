@@ -66,49 +66,53 @@ namespace EsoftApi.Controllers
         [HttpGet("familyof/{id}")]
         public string GetFamilyOf(int id)
         {
-            var person = _context.Family.Find(id);
-            string ASCII = person.Name + " ";
-            BuildFamilyRecursion(id, 0, 1, 1, ref ASCII);
-            return ASCII;
+            var person = _context.Family.Find(id); //find the central person
+            string ASCII = person.Name + " "; //add its name to the output
+            BuildFamilyRecursion(id, 0, 1, 1, ref ASCII); //recursively prepend or append ancestors and descendants
+            return ASCII; //returns a family tree in the format:
+                          //^ancestor2ofperson ^^ancestorofancestor1 ^^ancestorofancestor1 ^ancestor1ofperson person vchild1ofperson vvchildofchild1 vchild2ofperson
         }
 
+        //made to recursively prepend or append ancestors and descendants of a person, id is the central persons id, direction defines if it is building ancestors,
+        //descendants, or both, height and depth is how many generations up or down recursively, and the string reference is to acces the variable form outside the scope
+        //of the recursive function
         private void BuildFamilyRecursion(int id, int direction, int height, int depth, ref string ASCII)
         {
             Person newPerson = null;
-            if (direction >= 0)
+            if (direction >= 0) //if at the central person or building ancestors
             {
-                var listofancestors = from r in _context.Relations
+                var listofancestors = from r in _context.Relations //retrieve the list of ancestors
                                       where (r.FromPersonId == id)
                                       select r;
                 listofancestors.ToList();
 
-                foreach (Relation relative in listofancestors)
+                foreach (Relation relative in listofancestors) //for each relation in the list of ancestors
                 {
-                    newPerson = null;
-                    newPerson = _context.Family.Find(relative.ToPersonId);
-                    if (newPerson != null)
+                    newPerson = null; //ensure newperson is empty
+                    newPerson = _context.Family.Find(relative.ToPersonId);  //attempt to retrieve the ancestor
+                    if (newPerson != null) // if an ancestor did exist
                     {
-                        ASCII = ASCII.Insert(0, new string('^', height) + newPerson.Name + " ");
-                        BuildFamilyRecursion(relative.ToPersonId, 1, height + 1, depth, ref ASCII);
+                        ASCII = ASCII.Insert(0, new string('^', height) + newPerson.Name + " "); //prepend the ancestors name and generation indicator to the result
+                        BuildFamilyRecursion(relative.ToPersonId, 1, height + 1, depth, ref ASCII); //recursively prepend that persons ancestors too
                     }
 
                 }
             }
-            if(direction <= 0)
+            if(direction <= 0) //if at the central person or building descendants
             {
-                var listofdescendants = from r in _context.Relations
+                var listofdescendants = from r in _context.Relations  //retrieve the list of descendants
                                       where (r.ToPersonId == id)
                                       select r;
                 listofdescendants.ToList();
 
-                foreach (Relation relative in listofdescendants)
+                foreach (Relation relative in listofdescendants) //for each relation in the list of descendants
                 {
-                    newPerson = null;
-                    newPerson = _context.Family.Find(relative.FromPersonId);
-                    if (newPerson != null)
+                    newPerson = null; //ensure newperson is empty
+                    newPerson = _context.Family.Find(relative.FromPersonId); //attempt to retrieve the descendant
+                    if (newPerson != null) //if a descendant did exist
                     {
-                        ASCII += new string('v', depth) + newPerson.Name + " ";
-                        BuildFamilyRecursion(relative.FromPersonId, -1, height, depth + 1, ref ASCII);
+                        ASCII += new string('v', depth) + newPerson.Name + " "; //append the descendants name and generation indicator to the result
+                        BuildFamilyRecursion(relative.FromPersonId, -1, height, depth + 1, ref ASCII); //recursively append that persons descendants too
                     }
                 }
             }
@@ -116,8 +120,6 @@ namespace EsoftApi.Controllers
         }
 
         // POST: /People
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         public async Task<IActionResult> PostPerson(Person person)
         {
@@ -137,8 +139,8 @@ namespace EsoftApi.Controllers
             }
 
             _context.Family.Add(relative);
-            await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(relative.Id, id));
+            await _context.SaveChangesAsync(); //save relative to database to generate relative.id
+            _context.Relations.Add(RelatePeople(relative.Id, id)); //add parent/child relation to database
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(PostPersonAndChildRelation), relative.Id);
@@ -154,8 +156,8 @@ namespace EsoftApi.Controllers
             }
 
             _context.Family.Add(relative);
-            await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(id, relative.Id));
+            await _context.SaveChangesAsync(); //save relative to database to generate relative.id
+            _context.Relations.Add(RelatePeople(id, relative.Id)); //add parent/child relation to database
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(PostPersonAndParentRelation), relative.Id);
@@ -170,18 +172,18 @@ namespace EsoftApi.Controllers
                 return NotFound();
             }
 
-            Person intermediate = new Person();
+            Person intermediate = new Person(); //create the unknown intermediate person
             intermediate.Name = "?";
             intermediate.BirthYear = 0;
 
-            _context.Family.Add(intermediate);
+            _context.Family.Add(intermediate); //add both the intermediate and the relative to database
             _context.Family.Add(relative);
-            await _context.SaveChangesAsync();
-            _context.Relations.Add(RelatePeople(id, intermediate.Id));
-            _context.Relations.Add(RelatePeople(intermediate.Id, relative.Id));
+            await _context.SaveChangesAsync(); //save to database to generate id
+            _context.Relations.Add(RelatePeople(id, intermediate.Id)); //add relation from person to intermediate
+            _context.Relations.Add(RelatePeople(intermediate.Id, relative.Id)); //add relation from intermediate to relative
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(PostPerson), relative.Id);
+            return CreatedAtAction(nameof(PostPersonAndGrandarentRelation), relative.Id);
         }
 
         // DELETE: api/People/5
@@ -223,9 +225,11 @@ namespace EsoftApi.Controllers
 
         private Relation RelatePeople(int id1, int id2)
         {
-            Relation R = new Relation();
-            R.FromPersonId = id1;
-            R.ToPersonId = id2;
+            Relation R = new Relation
+            {
+                FromPersonId = id1,
+                ToPersonId = id2
+            };
             return R;
         }
     }

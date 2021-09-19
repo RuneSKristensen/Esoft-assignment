@@ -11,10 +11,10 @@ namespace EsoftApi.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Filename=Database.db");
+            optionsBuilder.UseSqlite("Filename=Database.db"); //use/create sqlite database
         }
 
-         public DbSet<Person> Family { get; set; }
-         public DbSet<Relation> Relations { get; set; }
+         public DbSet<Person> Family { get; set; } //with person model
+         public DbSet<Relation> Relations { get; set; } //and relation model
     }
 }

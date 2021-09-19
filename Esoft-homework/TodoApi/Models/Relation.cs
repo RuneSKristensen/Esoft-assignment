@@ -12,7 +12,6 @@ namespace EsoftApi.Models
         }
 
         public int Id { get; set; }
-
         public int FromPersonId { get; set; }
         public int ToPersonId { get; set; }
     }
